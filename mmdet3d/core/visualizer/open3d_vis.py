@@ -105,7 +105,7 @@ def _draw_bboxes(bbox3d,
             center[rot_axis] -= dim[
                 rot_axis] / 2  # bottom center to gravity center
         box3d = geometry.OrientedBoundingBox(center, rot_mat, dim)
-
+        box3d.color = bbox_color
         line_set = geometry.LineSet.create_from_oriented_bounding_box(box3d)
         line_set.paint_uniform_color(bbox_color)
         # draw bboxes on visualizer
@@ -370,13 +370,14 @@ class Visualizer(object):
                  points_in_box_color=(1, 0, 0),
                  rot_axis=2,
                  center_mode='lidar_bottom',
-                 mode='xyz'):
+                 mode='xyz',
+                 show=False):
         super(Visualizer, self).__init__()
         assert 0 <= rot_axis <= 2
 
         # init visualizer
         self.o3d_visualizer = o3d.visualization.Visualizer()
-        self.o3d_visualizer.create_window()
+        self.o3d_visualizer.create_window(visible=show)
         mesh_frame = geometry.TriangleMesh.create_coordinate_frame(
             size=1, origin=[0, 0, 0])  # create coordinate frame
         self.o3d_visualizer.add_geometry(mesh_frame)
@@ -452,6 +453,22 @@ class Visualizer(object):
         """
 
         self.o3d_visualizer.run()
+
+        if save_path is not None:
+            self.o3d_visualizer.capture_screen_image(save_path)
+
+        self.o3d_visualizer.destroy_window()
+        return
+
+    def show_no_display(self, save_path=None):
+        """Visualize the points cloud without displaying on the screen.
+
+        Args:
+            save_path (str, optional): path to save image. Default: None.
+        """
+        
+        self.o3d_visualizer.poll_events()
+        self.o3d_visualizer.update_renderer()
 
         if save_path is not None:
             self.o3d_visualizer.capture_screen_image(save_path)
